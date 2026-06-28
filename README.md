@@ -94,7 +94,7 @@ The taxonomy is generated dynamically using Gemini and stored as JSON for reuse.
 ---
 
 # Phase 4 – AI Classification
-
+<img width="1848" height="757" alt="Image" src="https://github.com/user-attachments/assets/1394896b-527c-4a0e-90bb-c502f99078ed" />
 Set the Gemini API key:
 
 ```bash
