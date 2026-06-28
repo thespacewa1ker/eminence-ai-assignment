@@ -1,5 +1,5 @@
 # Reputation Intelligence EDA
-
+<img width="1102" height="786" alt="Image" src="https://github.com/user-attachments/assets/5b45d462-d831-4bb1-99ce-564756dcbb82" />
 End-to-end AI-powered Reputation Intelligence solution for monitoring BFSI digital mentions. The project automates data preprocessing, taxonomy generation, AI-based classification, and interactive dashboard analytics.
 
 ---
