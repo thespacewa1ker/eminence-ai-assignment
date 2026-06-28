@@ -1,14 +1,14 @@
 # Reputation Intelligence EDA
 
-Phase 1 project setup and exploratory data analysis for an AI & Data Solutions
-Engineer interview assignment.
+End-to-end AI-powered Reputation Intelligence solution for monitoring BFSI digital mentions. The project automates data preprocessing, taxonomy generation, AI-based classification, and interactive dashboard analytics.
+
+---
 
 ## Objective
 
-Build a scalable reputation intelligence workflow for BFSI digital mentions.
-This phase initializes the repository, profiles the provided dataset, and
-documents data quality observations before any preprocessing, classification,
-sentiment analysis, dashboarding, or LLM integration.
+Build a scalable reputation intelligence workflow that collects, cleans, classifies, and analyzes BFSI digital mentions using Google Gemini and visualizes insights through an interactive Streamlit dashboard.
+
+---
 
 ## Project Structure
 
@@ -16,11 +16,14 @@ sentiment analysis, dashboarding, or LLM integration.
 data/
   raw/
   processed/
+dashboard/
 docs/
 notebooks/
 src/
 tests/
 ```
+
+---
 
 ## Setup
 
@@ -30,94 +33,170 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Phase 1 Usage
+---
 
-Open and run `notebooks/eda.ipynb` to reproduce the exploratory analysis.
-The notebook reads `data/raw/Dataset.xlsx` and writes:
+# Phase 1 – Exploratory Data Analysis
 
-- `docs/EDA.md`
-- `data/processed/exploration.csv`
+Run the notebook:
 
-## Phase 2 Preprocessing Pipeline
+```bash
+jupyter notebook notebooks/eda.ipynb
+```
 
-The preprocessing pipeline prepares the raw dataset for later AI
-classification without using LLMs, classification logic, dashboards, or APIs.
-For deduplication, a digital mention is identified by the business key:
-`Date + Source Name + Title`. This avoids treating repeated platform URLs as
-the only identity signal and avoids collapsing distinct mentions that happen to
-share a title.
+Outputs:
 
-Run it from the project root:
+* docs/EDA.md
+* data/processed/exploration.csv
+
+---
+
+# Phase 2 – Data Preprocessing
+
+Run:
 
 ```bash
 python -m src.preprocessing
 ```
 
-Pipeline flow:
+Pipeline:
 
-1. Load `data/raw/Dataset.xlsx`
+1. Load raw dataset
 2. Validate required columns
-3. Standardize column name whitespace
-4. Clean text fields: `Title`, `Opening Text`, `Hit Sentence`
-5. Normalize `Sentiment` to `Positive`, `Neutral`, or `Negative`
-6. Create `combined_text` from `Title`, `Opening Text`, and `Hit Sentence`
-7. Remove exact duplicate rows
-8. Remove duplicate digital mentions using `Date + Source Name + Title`,
-   keeping the first occurrence
-9. Remove records with blank `combined_text`
-10. Validate the clean dataset
-11. Save outputs
+3. Clean and standardize text
+4. Normalize sentiment values
+5. Create combined article text
+6. Remove duplicates
+7. Remove empty records
+8. Validate processed dataset
+9. Save cleaned dataset
 
-Generated files:
+Outputs:
 
-- `data/processed/clean_dataset.csv`
-- `data/processed/preprocessing_summary.json`
+* data/processed/clean_dataset.csv
+* data/processed/preprocessing_summary.json
 
-## Phase 3 Gemini Classification
+---
 
-Phase 3 extracts the classification framework from `docs/Assignment.docx` once,
-saves it as `data/processed/taxonomy.json`, then loads that JSON during
-classification. The source code does not hardcode the taxonomy drivers or
-sub-drivers.
+# Phase 3 – Taxonomy Generation
 
-Extract or load the taxonomy:
+Generate or load the reputation taxonomy.
 
 ```bash
 python -m src.taxonomy
 ```
 
-Run classification with Gemini:
+Output:
+
+* data/processed/taxonomy.json
+
+The taxonomy is generated dynamically using Gemini and stored as JSON for reuse.
+
+---
+
+# Phase 4 – AI Classification
+
+Set the Gemini API key:
 
 ```bash
 set GEMINI_API_KEY=your_api_key
+```
+
+Run:
+
+```bash
 python -m src.classifier
 ```
 
-The classifier reads `data/processed/clean_dataset.csv`, uses `combined_text`
-as the article text, populates the existing `Driver` and `Sub driver` columns,
-keeps the existing `Sentiment` column unchanged, adds `Reason`, and writes:
+The classifier:
 
-- `data/processed/classified_dataset.csv`
+* Loads the cleaned dataset.
+* Reads taxonomy.json.
+* Classifies articles in configurable batches.
+* Predicts:
 
-Gemini responses are validated against `taxonomy.json`. If a response fails
-validation, the classifier retries once, logs the error if it still fails, and
-continues with the remaining records.
+  * Driver
+  * Sub-driver
+  * Sentiment
+  * Reason
+* Validates every Gemini response.
+* Retries failed requests once.
+* Saves the classified dataset.
 
-## Current Scope
+Output:
 
-Included:
+* data/processed/classified_dataset.csv
 
-- Project initialization
-- Reusable EDA helper functions
-- Exploratory profiling
-- Data quality report
-- Deterministic preprocessing pipeline
-- Gemini-backed classification module
+---
 
-Excluded from the current phases:
+# Phase 5 – Streamlit Dashboard
 
-- Sentiment modeling
-- Dashboard
-- FastAPI
-- LLM integration
-- Deployment
+Launch the dashboard:
+
+```bash
+streamlit run dashboard/app.py
+```
+
+Dashboard Features
+
+* Executive KPI Summary
+* Driver Distribution
+* Sub-driver Distribution
+* Sentiment Distribution
+* Driver vs Sentiment Analysis
+* Top Discussion Themes
+* Interactive Filters
+* Search Functionality
+* Content Explorer
+* CSV Export
+
+---
+
+# Testing
+
+Run classification in test mode using the configuration in `src/config.py`.
+
+Test outputs are written to:
+
+```text
+tests/test_classified_dataset.csv
+```
+
+---
+
+# Technologies Used
+
+* Python
+* Pandas
+* Google Gemini Flash
+* Streamlit
+* Plotly
+* Git & GitHub
+
+---
+
+# Current Scope
+
+Included
+
+* Project initialization
+* Exploratory Data Analysis
+* Data preprocessing
+* Dynamic taxonomy generation
+* Gemini-based AI classification
+* Batch processing
+* Response validation
+* Streamlit analytics dashboard
+* Interactive filtering and search
+* CSV export
+
+Future Enhancements
+
+* FastAPI endpoint for real-time article classification
+* Automated daily data ingestion
+* Database integration (SQLite/PostgreSQL)
+* Cloud deployment
+* CI/CD pipeline
+* Authentication and user management
+
+```
+```
