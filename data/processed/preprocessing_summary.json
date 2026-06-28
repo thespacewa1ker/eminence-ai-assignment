@@ -1,0 +1,21 @@
+{
+  "rows_before": 100,
+  "rows_after": 86,
+  "duplicates_removed": 1,
+  "duplicate_mentions_removed": 13,
+  "irrelevant_records_removed": 0,
+  "missing_values": {
+    "Date": 3,
+    "URL": 0,
+    "Source Name": 1,
+    "Title": 11,
+    "Opening Text": 5,
+    "Hit Sentence": 33,
+    "Driver": 86,
+    "Sub driver": 86,
+    "Sentiment": 0,
+    "Reach": 22,
+    "combined_text": 0
+  },
+  "execution_time": 0.58
+}

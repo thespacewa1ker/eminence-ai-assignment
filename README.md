@@ -38,6 +38,41 @@ The notebook reads `data/raw/Dataset.xlsx` and writes:
 - `docs/EDA.md`
 - `data/processed/exploration.csv`
 
+## Phase 2 Preprocessing Pipeline
+
+The preprocessing pipeline prepares the raw dataset for later AI
+classification without using LLMs, classification logic, dashboards, or APIs.
+For deduplication, a digital mention is identified by the business key:
+`Date + Source Name + Title`. This avoids treating repeated platform URLs as
+the only identity signal and avoids collapsing distinct mentions that happen to
+share a title.
+
+Run it from the project root:
+
+```bash
+python -m src.preprocessing
+```
+
+Pipeline flow:
+
+1. Load `data/raw/Dataset.xlsx`
+2. Validate required columns
+3. Standardize column name whitespace
+4. Clean text fields: `Title`, `Opening Text`, `Hit Sentence`
+5. Normalize `Sentiment` to `Positive`, `Neutral`, or `Negative`
+6. Create `combined_text` from `Title`, `Opening Text`, and `Hit Sentence`
+7. Remove exact duplicate rows
+8. Remove duplicate digital mentions using `Date + Source Name + Title`,
+   keeping the first occurrence
+9. Remove records with blank `combined_text`
+10. Validate the clean dataset
+11. Save outputs
+
+Generated files:
+
+- `data/processed/clean_dataset.csv`
+- `data/processed/preprocessing_summary.json`
+
 ## Current Scope
 
 Included:
@@ -46,11 +81,10 @@ Included:
 - Reusable EDA helper functions
 - Exploratory profiling
 - Data quality report
+- Deterministic preprocessing pipeline
 
-Excluded from Phase 1:
+Excluded from the current phases:
 
-- Cleaning
-- Deduplication decisions
 - Classification
 - Sentiment modeling
 - Dashboard
