@@ -16,6 +16,7 @@ try:
         CLEAN_DATASET_PATH,
         SENTIMENT_VALUES,
         TAXONOMY_PATH,
+        TEST_CLASSIFIED_DATASET_PATH,
         TEST_MODE,
         TEST_ROWS,
     )
@@ -29,6 +30,7 @@ except ImportError:
         CLEAN_DATASET_PATH,
         SENTIMENT_VALUES,
         TAXONOMY_PATH,
+        TEST_CLASSIFIED_DATASET_PATH,
         TEST_MODE,
         TEST_ROWS,
     )
@@ -161,7 +163,7 @@ def classify_text_with_retry(
 
 
 def build_batch_classification_prompt(
-    articles: list[dict[str, str]],
+    articles: list[dict[str, object]],
     taxonomy: dict[str, list[str]],
 ) -> str:
     """Build a Gemini prompt for a batch of article texts."""
@@ -172,9 +174,21 @@ def build_batch_classification_prompt(
 Use only this taxonomy:
 {taxonomy_json}
 
-Return ONLY a valid JSON array. Return one object per input article in the same order.
+Return ONLY a valid JSON array with one classification object for every input article.
 Each object must use this exact schema:
+[
+  {{
+    "id": 0,
+    "driver": "...",
+    "sub_driver": "...",
+    "sentiment": "Positive|Neutral|Negative",
+    "reason": "..."
+  }}
+]
+
+Each object must include the same id as its corresponding input article:
 {{
+  "id": 0,
   "driver": "...",
   "sub_driver": "...",
   "sentiment": "Positive|Neutral|Negative",
@@ -188,6 +202,7 @@ Rules:
 - Do not invent drivers or sub_drivers.
 - Keep each reason concise and evidence-based.
 - Return exactly {len(articles)} objects.
+- Do not skip, merge, or pad articles.
 
 Articles:
 {articles_json}
@@ -195,14 +210,15 @@ Articles:
 
 
 def classify_batch_with_retry(
-    articles: list[dict[str, str]],
+    articles: list[dict[str, object]],
     taxonomy: dict[str, list[str]],
     client: GeminiClient,
     max_attempts: int = 2,
-) -> list[dict[str, str]]:
+) -> dict[int, dict[str, str]]:
     """Classify one article batch, retrying once when the batch fails."""
     prompt = build_batch_classification_prompt(articles=articles, taxonomy=taxonomy)
     last_error: Exception | None = None
+    article_ids = {int(article["id"]) for article in articles}
 
     for attempt in range(1, max_attempts + 1):
         try:
@@ -214,10 +230,29 @@ def classify_batch_with_retry(
                     f"expected {len(articles)}, got {len(responses)}"
                 )
 
-            return [
-                validate_classification_response(response, taxonomy)
-                for response in responses
-            ]
+            classifications: dict[int, dict[str, str]] = {}
+            for response in responses:
+                if "id" not in response:
+                    raise ValueError("Gemini batch response item missing id")
+
+                response_id = int(response["id"])
+                if response_id not in article_ids:
+                    raise ValueError(
+                        f"Gemini returned unexpected article id: {response_id}"
+                    )
+
+                classifications[response_id] = validate_classification_response(
+                    response,
+                    taxonomy,
+                )
+
+            if set(classifications) != article_ids:
+                raise ValueError(
+                    "Gemini batch response ids do not match input ids: "
+                    f"expected {sorted(article_ids)}, got {sorted(classifications)}"
+                )
+
+            return classifications
         except Exception as exc:
             last_error = exc
             logger.warning("Batch classification attempt %s failed: %s", attempt, exc)
@@ -251,13 +286,10 @@ def classify_dataframe(
 
         articles = [
             {
-                "article_number": str(position),
-                "text": str(row["combined_text"]).strip(),
+                "id": int(index),
+                "article": str(row["combined_text"]).strip(),
             }
-            for position, (_, row) in enumerate(
-                batch.iterrows(),
-                start=batch_start + 1,
-            )
+            for index, row in batch.iterrows()
         ]
 
         try:
@@ -274,10 +306,11 @@ def classify_dataframe(
                 result.at[index, "Reason"] = f"Classification failed: {exc}"
             continue
 
-        for position, (index, classification) in enumerate(
-            zip(batch.index, classifications),
+        for position, index in enumerate(
+            batch.index,
             start=batch_start + 1,
         ):
+            classification = classifications[int(index)]
             result.at[index, "Driver"] = classification["driver"]
             result.at[index, "Sub driver"] = classification["sub_driver"]
             result.at[index, "Sentiment"] = classification["sentiment"]
@@ -318,6 +351,8 @@ def run_classification_pipeline(
             TEST_ROWS,
         )
         df = df.head(TEST_ROWS).copy()
+        if Path(output_path) == CLASSIFIED_DATASET_PATH:
+            output_path = TEST_CLASSIFIED_DATASET_PATH
 
     client = GeminiClient()
 

@@ -23,6 +23,7 @@ CLEAN_DATASET_PATH = PROCESSED_DATA_DIR / "clean_dataset.csv"
 PREPROCESSING_SUMMARY_PATH = PROCESSED_DATA_DIR / "preprocessing_summary.json"
 TAXONOMY_PATH = PROCESSED_DATA_DIR / "taxonomy.json"
 CLASSIFIED_DATASET_PATH = PROCESSED_DATA_DIR / "classified_dataset.csv"
+TEST_CLASSIFIED_DATASET_PATH = PROJECT_ROOT / "tests" / "test_classified_dataset.csv"
 
 REQUIRED_COLUMNS = [
     "Date",
@@ -40,6 +41,6 @@ REQUIRED_COLUMNS = [
 TEXT_COLUMNS = ["Title", "Opening Text", "Hit Sentence"]
 SENTIMENT_VALUES = {"Positive", "Neutral", "Negative"}
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-TEST_MODE = True
+TEST_MODE = False
 TEST_ROWS = 5
 BATCH_SIZE = 20
