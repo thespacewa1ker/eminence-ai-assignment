@@ -14,7 +14,7 @@ import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = PROJECT_ROOT / "data" / "processed" / "classified_dataset.csv"
-COMPANY_NAME = "ICICI Prudential AMC"
+COMPANY_NAME = "Eminence Strategy"
 
 REQUIRED_COLUMNS = [
     "Title",
@@ -31,12 +31,12 @@ SENTIMENT_COLORS = {
 }
 
 SECTION_ICON = {
-    "Executive Summary": "Ã¢â€”â€ ",
-    "Reputation Overview": "Ã¢â€”Ë†",
-    "Analytics": "Ã¢â€“Â£",
-    "Discussion Themes": "Ã¢â€”â€¡",
-    "Insights": "Ã¢â€”Å’",
-    "Content Explorer": "Ã¢â€“Â¤",
+    "Executive Summary": " ",
+    "Reputation Overview": "",
+    "Analytics": "",
+    "Discussion Themes": "",
+    "Insights": "",
+    "Content Explorer": "",
 }
 
 STOPWORDS = {
