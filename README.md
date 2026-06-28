@@ -73,6 +73,36 @@ Generated files:
 - `data/processed/clean_dataset.csv`
 - `data/processed/preprocessing_summary.json`
 
+## Phase 3 Gemini Classification
+
+Phase 3 extracts the classification framework from `docs/Assignment.docx` once,
+saves it as `data/processed/taxonomy.json`, then loads that JSON during
+classification. The source code does not hardcode the taxonomy drivers or
+sub-drivers.
+
+Extract or load the taxonomy:
+
+```bash
+python -m src.taxonomy
+```
+
+Run classification with Gemini:
+
+```bash
+set GEMINI_API_KEY=your_api_key
+python -m src.classifier
+```
+
+The classifier reads `data/processed/clean_dataset.csv`, uses `combined_text`
+as the article text, populates the existing `Driver` and `Sub driver` columns,
+keeps the existing `Sentiment` column unchanged, adds `Reason`, and writes:
+
+- `data/processed/classified_dataset.csv`
+
+Gemini responses are validated against `taxonomy.json`. If a response fails
+validation, the classifier retries once, logs the error if it still fails, and
+continues with the remaining records.
+
 ## Current Scope
 
 Included:
@@ -82,10 +112,10 @@ Included:
 - Exploratory profiling
 - Data quality report
 - Deterministic preprocessing pipeline
+- Gemini-backed classification module
 
 Excluded from the current phases:
 
-- Classification
 - Sentiment modeling
 - Dashboard
 - FastAPI
